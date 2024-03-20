@@ -8,14 +8,12 @@ from torch.nn import functional as F
 
 torch.manual_seed(1337)
 
-BLOCK_SIZE = 8
+block_size = 8
 batch_size = 32
 max_iterations = 3000
 eval_interval = 300
 eval_iters = 1000
 learning_rate = 1e-2
-
-EMBEDDING_SIZE = 64
 
 device = "cuda" if torch.cuda.is_available() else 'cpu'
 
@@ -50,9 +48,9 @@ train_data = data[:n]
 val_data = data[n:]
 
 
-def get_batch(split="train", batch_size=4, block_size=BLOCK_SIZE):
+def get_batch(split="train", batch_size=4):
     data = train_data if split == 'train' else val_data
-    ixs = torch.randint(len(data) - block_size, (batch_size,))  # (B,)
+    ixs = torch.randint(len(data) - block_size, (batch_size,))
     x = torch.stack([data[x:x+block_size] for x in ixs])
     y = torch.stack([data[x+1: x+block_size + 1] for x in ixs])
     x, y = x.to(device), y.to(device)
@@ -60,23 +58,16 @@ def get_batch(split="train", batch_size=4, block_size=BLOCK_SIZE):
 
 
 class BigramLanguageModel(nn.Module):
-    def __init__(self, device, vocab_size, embedding_size=EMBEDDING_SIZE, block_size=BLOCK_SIZE):
+    def __init__(self, vocab_size, embedding_size=None):
         super().__init__()
-        self.device = device
+        embedding_size = embedding_size if embedding_size else vocab_size
         self.token_embedding_table = nn.Embedding(vocab_size, embedding_size)
-        self.pos_embedding_table = nn.Embedding(block_size, embedding_size)
-        self.linear = nn.Linear(embedding_size, vocab_size)
+        # self.linear = nn.Linear(embedding_size, vocab_size)
 
     def forward(self, idx, targets=None):
-        # idx and targets are both (B,T) tensor of integes
-        B, T = idx.shape
-        tok_embedding = self.token_embedding_table(idx)  # (B,T,C)
-
-        pos = torch.arange(T, device=self.device)  # (T,)
-        pos_embedding = self.pos_embedding_table(pos)  # (T,C)
-        x = tok_embedding + pos_embedding  # (B,T,C)
-
-        logits = self.linear(x)
+        # each token directly reads off the logits for the next token from a lookup table
+        logits = self.token_embedding_table(idx)  # (B,T,C)
+        # logits = self.linear(logits)
         if targets is None:
             loss = None
         else:
@@ -104,7 +95,7 @@ def estimate_loss():
     for split in ['train', 'val']:
         losses = torch.zeros(eval_iters)
         for k in range(eval_iters):
-            x, y = get_batch(split, batch_size, block_size=BLOCK_SIZE)
+            x, y = get_batch(split, batch_size)
             logits, loss = model(x, y)
             losses[k] = loss.item()
         out[split] = losses.mean()
@@ -112,7 +103,7 @@ def estimate_loss():
     return out
 
 
-model = BigramLanguageModel(device=device, vocab_size=vocab_size)
+model = BigramLanguageModel(vocab_size)
 model = model.to(device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
@@ -124,7 +115,7 @@ for step in range(max_iterations):
         print(
             f"step {step}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
 
-    xb, yb = get_batch("train", batch_size=batch_size, block_size=BLOCK_SIZE)
+    xb, yb = get_batch("train", batch_size=batch_size)
     logits, loss = model(xb, yb)
     optimizer.zero_grad(set_to_none=True)
     loss.backward()
