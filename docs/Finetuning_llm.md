@@ -1,4 +1,22 @@
+
+# RLHF : Reinforcement Learning from human feedback
+
+## step 1. Supervied fine-tuning(SFT): 
+
+fintune GPT-3 using supervised learning on Demonstrationdata 
+
+## step 2. Train a Reward Model on comparison data
+
+
+## step 3. Finetuning a pretrained model with RL
+
+fine-tune our supervised learning baseline to maximize this reward using the PPO algorithm
+PPO model initialized from the initial policy generate output which get a reward from the RM. the reward is uesd to update the policy using PPO
+
+
 # Reference
+
+## Courses
 
 [Andrej Karpathy-Let's build GPT: from scratch, in code, spelled out.](https://www.youtube.com/watch?v=kCc8FmEb1nY&list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ&index=7)
 [finetuning-large-language-models](https://learn.deeplearning.ai/courses/finetuning-large-language-models/)
@@ -16,7 +34,7 @@
 [finetune 的几种方法和对应框架 ](https://note.iawen.com/note/llm/finetune)
 [LLMs Fine-tuning 学习笔记（一）：trl+peft](https://www.cnblogs.com/lokvahkoor/p/17413273.html)
 
-# Open source prjects:
+## Open source prjects:
 
 [fastchat](https://github.com/lm-sys/FastChat)
 [skypilot](https://github.com/skypilot-org/skypilot)
