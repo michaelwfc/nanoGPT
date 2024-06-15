@@ -31,6 +31,7 @@
 
 [ChatGPT plugin]()
 [GORILLA](https://gorilla.cs.berkeley.edu/)
+[Qyuvr](https://www.quivr.app/)
 
 ## Direction interaction(Browser or desktop control)
 
